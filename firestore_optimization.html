@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Optimization Solutions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 2.8em;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .problem {
+            background: #ffebee;
+            border-left: 5px solid #d32f2f;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .problem h3 {
+            color: #d32f2f;
+            margin-bottom: 10px;
+        }
+
+        .solution {
+            background: #e8f5e9;
+            border-left: 5px solid #388e3c;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .solution h3 {
+            color: #388e3c;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            margin: 15px 0;
+            line-height: 1.5;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .comparison-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .good {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .bad {
+            background: #ffebee;
+            color: #c62828;
+            font-weight: 600;
+        }
+
+        .neutral {
+            background: #fff3e0;
+            color: #e65100;
+            font-weight: 600;
+        }
+
+        .option-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .option-box.recommended {
+            background: linear-gradient(135deg, #fff9c4 0%, #fbc02d 100%);
+            border-color: #f57f17;
+        }
+
+        .option-box h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+
+        .option-box.recommended h3 {
+            color: #f57f17;
+        }
+
+        .benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .benefit-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .benefit-card.positive {
+            border-left: 4px solid #388e3c;
+        }
+
+        .benefit-card.negative {
+            border-left: 4px solid #d32f2f;
+        }
+
+        .benefit-card.warning {
+            border-left: 4px solid #f57f17;
+        }
+
+        .benefit-card h4 {
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+        }
+
+        .benefit-card p {
+            margin: 0;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .icon {
+            display: inline-block;
+            margin-right: 5px;
+            font-size: 1.2em;
+        }
+
+        .checklist {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .checklist label {
+            display: block;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .checklist input {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .chart-label {
+            width: 150px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .chart-bar-fill {
+            flex: 1;
+            height: 30px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Firestore Database Optimization</h1>
+
+        <!-- Issue 1 -->
+        <div class="section">
+            <h2>❌ Issue 1: Deep Subcollection Nesting</h2>
+            
+            <div class="problem">
+                <h3>🔴 Current Problem</h3>
+                <p><strong>Path:</strong> ProductCategories → fertilizer → organic → organic001</p>
+                <p><strong>Impact:</strong></p>
+                <ul>
+                    <li>4-level deep hierarchy increases read costs</li>
+                    <li>Complex queries require multiple database calls</li>
+                    <li>Poor performance with large datasets</li>
+                    <li>Hard to filter across categories</li>
+                </ul>
+            </div>
+
+            <div class="solution">
+                <h3>✅ Solution A: Denormalized Collection (RECOMMENDED ⭐)</h3>
+                <div class="option-box recommended">
+                    <h3>📊 Single "Products" Collection</h3>
+                    <div class="code-block">
+{
+  id: "organic001",
+  name: "Phân bón hữu cơ 001",
+  description: "Phân bón hữu cơ 001",
+  image: "https://example.com/organic001.jpg",
+  
+  // Hierarchy (denormalized)
+  mainCategory: "fertilizer",
+  subCategory: "organic",
+  
+  // Searchable fields
+  nameSearchLower: "phân bón hữu cơ 001",
+  searchTokens: ["phân", "bón", "organic", "fertilizer"],
+  
+  // Flattened attributes for queries
+  nitrogen: 10,
+  phosphorus: 10,
+  potassium: 10,
+  
+  // Full attributes (for display)
+  attributes: {
+    "%N": "10",
+    "%P": "10",
+    "%K": "10"
+  },
+  
+  // Metadata
+  createdAt: timestamp,
+  updatedAt: timestamp,
+  isActive: true
+}
+                    </div>
+
+                    <div class="benefits">
+                        <div class="benefit-card positive">
+                            <h4>⚡ Fast Queries</h4>
+                            <p>Single collection queries are 3-5x faster than subcollections</p>
+                        </div>
+                        <div class="benefit-card positive">
+                            <h4>💰 Lower Cost</h4>
+                            <p>1 read operation instead of 2-3 nested reads</p>
+                        </div>
+                        <div class="benefit-card positive">
+                            <h4>🔍 Better Filtering</h4>
+                            <p>Easy to combine multiple filter conditions</p>
+                        </div>
+                        <div class="benefit-card positive">
+                            <h4>📄 Simple Indexing</h4>
+                            <p>Automatic composite indexes by Firestore</p>
+                        </div>
+                    </div>
+
+                    <p><strong>Example Queries:</strong></p>
+                    <div class="code-block">
+// Get all organic fertilizers
+db.collection("Products")
+  .where("mainCategory", "==", "fertilizer")
+  .where("subCategory", "==", "organic")
+  .get()
+
+// Search by name
+db.collection("Products")
+  .where("nameSearchLower", ">=", "phân")
+  .where("nameSearchLower", "<", "phân\uf8ff")
+  .get()
+
+// Filter by nutrient content
+db.collection("Products")
+  .where("mainCategory", "==", "fertilizer")
+  .where("nitrogen", ">=", 5)
+  .orderBy("nitrogen")
+  .limit(10)
+  .get()
+                    </div>
+                </div>
+
+                <h3>Alternative B: Map Fields Instead of Subcollections</h3>
+                <div class="option-box">
+                    <h3>🗂️ Keep Category Documents with Nested Maps</h3>
+                    <div class="code-block">
+ProductCategories/fertilizer:
+{
+  name: "Fertilizers",
+  products: {
+    organic: {
+      organic001: {
+        name: "Phân bón hữu cơ 001",
+        attributes: { "%N": "10", ... }
+      },
+      organic002: { ... }
+    },
+    inorganic: { ... }
+  }
+}
+                    </div>
+
+                    <div class="benefits">
+                        <div class="benefit-card positive">
+                            <h4>✅ Single Read</h4>
+                            <p>Get entire category with one operation</p>
+                        </div>
+                        <div class="benefit-card warning">
+                            <h4>⚠️ Size Limit</h4>
+                            <p>Max 1MB per document - watch out with many products!</p>
+                        </div>
+                        <div class="benefit-card warning">
+                            <h4>⚠️ Hard to Scale</h4>
+                            <p>Can't query individual products</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 2 -->
+        <div class="section">
+            <h2>❌ Issue 2: Duplicate Data</h2>
+            
+            <div class="problem">
+                <h3>🔴 Current Problem</h3>
+                <p><strong>Found:</strong> "gateway" subcollection appears TWICE under electronics</p>
+                <p><strong>Impact:</strong></p>
+                <ul>
+                    <li>Data inconsistency issues</li>
+                    <li>Maintenance nightmare</li>
+                    <li>Higher storage costs</li>
+                    <li>Confusion for developers</li>
+                </ul>
+            </div>
+
+            <div class="solution">
+                <h3>✅ Solution: Remove Duplicates</h3>
+                <div class="code-block">
+// CORRECT STRUCTURE
+electronics/
+├── gateway/
+│   ├── gateway001
+│   └── gateway002 (if needed)
+├── sensor/
+│   └── sensor001
+└── node/
+    ├── node001
+    └── node002
+
+// Remove the duplicate gateway subcollection!
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 3 -->
+        <div class="section">
+            <h2>❌ Issue 3: Unindexed Attributes - Search Problems</h2>
+            
+            <div class="problem">
+                <h3>🔴 Current Problem</h3>
+                <p><strong>Challenge:</strong> Attributes stored as nested objects are hard to query</p>
+                <div class="code-block">
+// This is inefficient!
+db.collection("Products")
+  .where("attributes.nitrogen", ">=", 10)
+  .get()
+
+// Firestore can't use indexes on nested object properties
+                </div>
+                <p><strong>Impact:</strong></p>
+                <ul>
+                    <li>Slow searches on product attributes</li>
+                    <li>Can't filter by nitrogen, phosphorus, etc.</li>
+                    <li>Full collection scans required</li>
+                </ul>
+            </div>
+
+            <div class="solution">
+                <h3>✅ Solution A: Flatten Critical Attributes</h3>
+                <div class="code-block">
+{
+  id: "organic001",
+  name: "Phân bón hữu cơ 001",
+  
+  // Flattened for indexing
+  nitrogen: 10,
+  phosphorus: 10,
+  potassium: 10,
+  
+  // Keep original for reference
+  attributes: {
+    "%N": "10",
+    "%P": "10",
+    "%K": "10"
+  }
+}
+
+// Now this query is fast!
+db.collection("Products")
+  .where("nitrogen", ">=", 5)
+  .get()
+                </div>
+
+                <h3>✅ Solution B: Separate Attributes Collection</h3>
+                <div class="code-block">
+ProductAttributes Collection:
+{
+  productId: "organic001",
+  nitrogen: 10,
+  phosphorus: 10,
+  potassium: 10,
+  type: "fertilizer"
+}
+
+// Fast indexed query
+db.collection("ProductAttributes")
+  .where("nitrogen", ">=", 5)
+  .where("type", "==", "fertilizer")
+  .get()
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue 4 -->
+        <div class="section">
+            <h2>❌ Issue 4: No Search Optimization</h2>
+            
+            <div class="problem">
+                <h3>🔴 Current Problem</h3>
+                <p>No way to quickly search products by name or use full-text search</p>
+                <ul>
+                    <li>Can't do substring searches</li>
+                    <li>Case-sensitive searches</li>
+                    <li>No tokenization for partial matching</li>
+                </ul>
+            </div>
+
+            <div class="solution">
+                <h3>✅ Solution: Add Search Fields</h3>
+                <div class="code-block">
+{
+  id: "organic001",
+  name: "Phân bón hữu cơ 001",
+  
+  // For case-insensitive search
+  nameSearchLower: "phân bón hữu cơ 001",
+  
+  // For substring/token search
+  searchTokens: [
+    "phân", "bón", "hữu", "cơ", "001",
+    "fertilizer", "organic", "phân bón"
+  ],
+  
+  category: "fertilizer",
+  type: "organic"
+}
+
+// Efficient search queries
+db.collection("Products")
+  .where("searchTokens", "array-contains", "phân")
+  .get()
+
+db.collection("Products")
+  .where("nameSearchLower", ">=", "phân")
+  .where("nameSearchLower", "<", "phân\uf8ff")
+  .get()
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Comparison -->
+        <div class="section">
+            <h2>📊 Performance Comparison</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Current Structure</th>
+                        <th>Option 1 (Recommended)</th>
+                        <th>Option 2 (Hierarchical)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Get all organic fertilizers</strong></td>
+                        <td class="bad">2-3 reads</td>
+                        <td class="good">1 read ⭐</td>
+                        <td class="neutral">2 reads</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Search by name</strong></td>
+                        <td class="bad">❌ Not possible</td>
+                        <td class="good">1 read ⭐</td>
+                        <td class="good">2 reads</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Filter by nutrients</strong></td>
+                        <td class="bad">❌ Expensive scan</td>
+                        <td class="good">1 read ⭐</td>
+                        <td class="good">2 reads</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Combined filters</strong></td>
+                        <td class="bad">❌ Very complex</td>
+                        <td class="good">1 read ⭐</td>
+                        <td class="neutral">2 reads</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Write operations</strong></td>
+                        <td class="neutral">1 write</td>
+                        <td class="neutral">1 write</td>
+                        <td class="neutral">1-2 writes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Monthly cost (1000 queries)</strong></td>
+                        <td class="bad">$2500-3000</td>
+                        <td class="good">$300-500 ⭐</td>
+                        <td class="neutral">$600-800</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Complexity</strong></td>
+                        <td class="neutral">Medium</td>
+                        <td class="good">Simple ⭐</td>
+                        <td class="neutral">Medium</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Cost Analysis -->
+        <div class="section">
+            <h2>💰 Cost Savings Analysis</h2>
+            
+            <h3>Current High-Cost Operations:</h3>
+            <div class="code-block">
+// HIGH COST: ~3 reads per query
+db.collection("ProductCategories")
+  .doc("fertilizer")
+  .collection("organic")
+  .doc("organic001")
+  .get()  // Read 1: ProductCategories
+          // Read 2: fertilizer doc
+          // Read 3: organic001 doc
+
+// With 1000 queries/month: 3000 reads = ~$1.50 per 100k reads
+            </div>
+
+            <h3>Optimized Low-Cost Operations:</h3>
+            <div class="code-block">
+// LOW COST: ~1 read per query
+db.collection("Products")
+  .where("mainCategory", "==", "fertilizer")
+  .where("subCategory", "==", "organic")
+  .limit(20)
+  .get()  // Read 1: Query results (indexed)
+
+// With 1000 queries/month: 1000 reads = ~$0.50 per 100k reads
+// SAVINGS: 66% reduction! 💰
+            </div>
+
+            <div class="chart-container">
+                <h3>Monthly Cost Projection (1000 queries)</h3>
+                <div class="chart-bar">
+                    <div class="chart-label">Current:</div>
+                    <div class="chart-bar-fill" style="width: 100%;">$2,500</div>
+                </div>
+                <div class="chart-bar">
+                    <div class="chart-label">Optimized:</div>
+                    <div class="chart-bar-fill" style="width: 25%; background: linear-gradient(90deg, #388e3c 0%, #4caf50 100%);">$400</div>
+                </div>
+                <p style="margin-top: 20px; color: #2e7d32; font-weight: 600;">💰 Potential Savings: $2,100/month (84%)</p>
+            </div>
+        </div>
+
+        <!-- Implementation Checklist -->
+        <div class="section">
+            <h2>✅ Implementation Checklist</h2>
+            
+            <div class="checklist">
+                <label>
+                    <input type="checkbox"> 
+                    <strong>1. Denormalize data</strong> - Add nitrogen, phosphorus, potassium fields
+                </label>
+                <label>
+                    <input type="checkbox"> 
+                    <strong>2. Add search fields</strong> - nameSearchLower, searchTokens
+                </label>
+                <label>
+                    <input type="checkbox"> 
+                    <strong>3. Add metadata</strong> - createdAt, updatedAt, isActive, stock, price, rating
+                </label>
+                <label>
+                    <input type="checkbox"> 
+                    <strong>4. Flatten hierarchy</strong> - Use mainCategory + subCategory instead of subcollections
+                </label>
+                <label>
+                    <input type="checkbox"> 
+                    <strong>5. Remove duplicates</strong> - Delete duplicate gateway subcollection
+                </label>
+                <label>
+                    <input type="checkbox"> 
+                    <strong>6. Create indexes</strong> - Composite indexes for common queries:
+                    <ul style="margin-top: 10px; margin-left: 30px;">
+                        <li>(mainCategory, subCategory)</li>
+                        <li>(mainCategory, nitrogen)</li>
+                        <li>(nameSearchLower, createdAt)</li>
+                    </ul>
+                </label>
+                <label>
+                    <input type="checkbox"> 
+                    <strong>7. Validate data</strong> - Ensure data consistency
+                </label>
+                <label>
+                    <input type="checkbox"> 
+                    <strong>8. Set up security rules</strong> - Protect sensitive data
+                </label>
+                <label>
+                    <input type="checkbox"> 
+                    <strong>9. Implement pagination</strong> - Use .limit() and .startAfter()
+                </label>
+                <label>
+                    <input type="checkbox"> 
+                    <strong>10. Add client-side caching</strong> - Use IndexedDB or localStorage
+                </label>
+            </div>
+        </div>
+
+        <!-- Migration Strategy -->
+        <div class="section">
+            <h2>🔄 Migration Strategy</h2>
+            
+            <h3>Step 1: Create New Products Collection</h3>
+            <div class="code-block">
+// Duplicate and transform data from subcollections
+const products = [];
+
+const categories = await db.collection("ProductCategories").get();
+categories.forEach(async (categoryDoc) => {
+  const subcollections = categoryDoc.collection("organic");
+  const items = await subcollections.get();
+  items.forEach((item) => {
+    products.push({
+      id: item.id,
+      mainCategory: categoryDoc.id,
+      subCategory: "organic",
+      ...item.data(),
+      createdAt: new Date(),
+      searchTokens: generateTokens(item.data().name)
+    });
+  });
+});
+
+// Batch write
+const batch = db.batch();
+products.forEach((product) => {
+  batch.set(db.collection("Products").doc(product.id), product);
+});
+await batch.commit();
+            </div>
+
+            <h3>Step 2: Create Composite Indexes</h3>
+            <p>Firestore will automatically create indexes when you run these queries:</p>
+            <div class="code-block">
+db.collection("Products")
+  .where("mainCategory", "==", "fertilizer")
+  .where("subCategory", "==", "organic")
+  .get()
+
+db.collection("Products")
+  .where("mainCategory", "==", "fertilizer")
+  .where("nitrogen", ">=", 5)
+  .orderBy("nitrogen")
+  .get()
+            </div>
+
+            <h3>Step 3: Test & Validate</h3>
+            <ul>
+                <li>Run old and new queries in parallel</li>
+                <li>Compare results</li>
+                <li>Monitor performance metrics</li>
+                <li>Check cost differences</li>
+            </ul>
+
+            <h3>Step 4: Deprecate Old Structure</h3>
+            <ul>
+                <li>Keep ProductCategories for reference</li>
+                <li>Update app to use Products collection</li>
+                <li>Remove subcollections after 1-2 months</li>
+            </ul>
+        </div>
+
+        <!-- Recommended Structure -->
+        <div class="section">
+            <h2>🎯 Final Recommended Structure</h2>
+            
+            <h3>Collections:</h3>
+            <div class="code-block">
+Firestore Database:
+│
+├── Products (Main collection)
+│   ├── organic001
+│   ├── organic002
+│   ├── inorganic001
+│   ├── inorganic002
+│   ├── vegetable001
+│   ├── fruit001
+│   ├── sensor001
+│   └── gateway001
+│
+├── ProductCategories (Reference only)
+│   ├── fertilizer (name, description, icon)
+│   ├── seed (name, description, icon)
+│   └── electronics (name, description, icon)
+│
+├── ProductSubcategories (Reference only)
+│   ├── organic (categoryId, name, description)
+│   ├── inorganic (categoryId, name, description)
+│   ├── vegetable (categoryId, name, description)
+│   └── ...
+│
+└── ProductReviews (Separate for scalability)
+    ├── (productId, userId, rating, comment)
+    └── (auto-generated IDs)
+            </div>
+
+            <h3>Each Product Document:</h3>
+            <div class="code-block">
+{
+  // Identity
+  id: "organic001",
+  sku: "ORG-001",
+  
+  // Basic Info
+  name: "Phân bón hữu cơ 001",
+  description: "Phân bón hữu cơ chất lượng cao",
+  image: "https://...",
+  
+  // Categorization (Denormalized)
+  mainCategory: "fertilizer",
+  subCategory: "organic",
+  
+  // Search Fields
+  nameSearchLower: "phân bón hữu cơ 001",
+  searchTokens: ["phân", "bón", "hữu", "cơ", "organic", "fertilizer"],
+  
+  // Quantifiable Attributes (Denormalized for indexing)
+  nitrogen: 10,
+  phosphorus: 10,
+  potassium: 10,
+  
+  // Full Attributes (for display)
+  attributes: {
+    "%N": "10",
+    "%P": "10",
+    "%K": "10"
+  },
+  
+  // Business Data
+  price: 25000,
+  stock: 100,
+  rating: 4.5,
+  reviewCount: 24,
+  
+  // Metadata
+  createdAt: timestamp,
+  updatedAt: timestamp,
+  isActive: true,
+  isFeatured: false
+}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,2 @@
+-keep class com.vibe.network.** { *; }
+-keep interface com.vibe.network.** { *; }

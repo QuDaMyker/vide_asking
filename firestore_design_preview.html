@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Database Design Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .tree {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow-x: auto;
+        }
+
+        .tree-item {
+            margin-bottom: 20px;
+        }
+
+        .collection {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .collection::before {
+            content: "📦";
+            font-size: 1.3em;
+        }
+
+        .document {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 12px 16px;
+            margin-left: 30px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .document::before {
+            content: "📄";
+        }
+
+        .subcollection {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 12px 16px;
+            margin-left: 60px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subcollection::before {
+            content: "📁";
+        }
+
+        .docitem {
+            background: white;
+            border-left: 3px solid #4caf50;
+            padding: 15px;
+            margin-left: 90px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .docitem-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .docitem-title::before {
+            content: "🔹";
+        }
+
+        .docitem-field {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 15px;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #f9f9f9;
+            border-radius: 3px;
+            font-size: 0.95em;
+        }
+
+        .field-name {
+            font-weight: 500;
+            color: #667eea;
+        }
+
+        .field-value {
+            color: #555;
+            word-break: break-all;
+        }
+
+        .attributes {
+            background: #f0f8ff;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+
+        .attribute-item {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 10px;
+            padding: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .attribute-key {
+            color: #d9534f;
+            font-weight: 500;
+        }
+
+        .attribute-value {
+            color: #5cb85c;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .docitem.collapsed .docitem-content {
+            display: none;
+        }
+
+        .docitem.collapsed .toggle-btn::before {
+            content: "▶ ";
+        }
+
+        .docitem:not(.collapsed) .toggle-btn::before {
+            content: "▼ ";
+        }
+
+        .docitem-content {
+            margin-top: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+            font-size: 0.95em;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Firestore Database Design</h1>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">1</div>
+                <div class="stat-label">Root Collection</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">Main Categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">9</div>
+                <div class="stat-label">Subcollections</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">15+</div>
+                <div class="stat-label">Documents</div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <span>📦</span>
+                <span>Collection</span>
+            </div>
+            <div class="legend-item">
+                <span>📄</span>
+                <span>Document</span>
+            </div>
+            <div class="legend-item">
+                <span>📁</span>
+                <span>Subcollection</span>
+            </div>
+            <div class="legend-item">
+                <span>🔹</span>
+                <span>Document Item</span>
+            </div>
+        </div>
+
+        <div class="tree">
+            <!-- ProductCategories Collection -->
+            <div class="collection">ProductCategories</div>
+
+            <!-- Fertilizer Document -->
+            <div class="document">fertilizer</div>
+
+            <!-- Organic Subcollection -->
+            <div class="subcollection">organic</div>
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    organic001
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Phân bón hữu cơ 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Phân bón hữu cơ 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/organic001.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">%N:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">%P:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">%K:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    organic002
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Phân bón hữu cơ 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Phân bón hữu cơ 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/organic002.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">%N:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">%P:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">%K:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inorganic Subcollection -->
+            <div class="subcollection">inorganic</div>
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    inorganic001
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Phân bón vô cơ 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Phân bón vô cơ 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/inorganic001.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">%N:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">%P:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">%K:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    inorganic002
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Phân bón vô cơ 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Phân bón vô cơ 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/inorganic002.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">%N:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">%P:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">%K:</span>
+                                <span class="attribute-value">"10"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seed Document -->
+            <div class="document">seed</div>
+
+            <!-- Vegetable Subcollection -->
+            <div class="subcollection">vegetable</div>
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    vegetable001
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Hạt giống rau 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Hạt giống rau 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/vegetable001.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">size:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">weight:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">color:</span>
+                                <span class="attribute-value">"red"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">shape:</span>
+                                <span class="attribute-value">"round"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">taste:</span>
+                                <span class="attribute-value">"sweet"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">aroma:</span>
+                                <span class="attribute-value">"fragrant"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    vegetable002
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Hạt giống rau 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Hạt giống rau 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/vegetable002.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">size:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">weight:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">color:</span>
+                                <span class="attribute-value">"red"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">shape:</span>
+                                <span class="attribute-value">"round"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">taste:</span>
+                                <span class="attribute-value">"sweet"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">aroma:</span>
+                                <span class="attribute-value">"fragrant"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fruit Subcollection -->
+            <div class="subcollection">fruit</div>
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    fruit001
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Hạt giống trái cây 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Hạt giống trái cây 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/fruit001.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">size:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">weight:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">color:</span>
+                                <span class="attribute-value">"red"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">shape:</span>
+                                <span class="attribute-value">"round"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">taste:</span>
+                                <span class="attribute-value">"sweet"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">aroma:</span>
+                                <span class="attribute-value">"fragrant"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    fruit002
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Hạt giống trái cây 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Hạt giống trái cây 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/fruit002.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">size:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">weight:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">color:</span>
+                                <span class="attribute-value">"red"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">shape:</span>
+                                <span class="attribute-value">"round"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">taste:</span>
+                                <span class="attribute-value">"sweet"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">aroma:</span>
+                                <span class="attribute-value">"fragrant"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flower Subcollection -->
+            <div class="subcollection">flower</div>
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    flower001
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Hạt giống hoa 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Hạt giống hoa 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/flower001.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">size:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">weight:</span>
+                                <span class="attribute-value">"10g"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">color:</span>
+                                <span class="attribute-value">"red"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">shape:</span>
+                                <span class="attribute-value">"round"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">taste:</span>
+                                <span class="attribute-value">"sweet"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">aroma:</span>
+                                <span class="attribute-value">"fragrant"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    flower002
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Hạt giống hoa 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Hạt giống hoa 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/flower002.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Electronics Document -->
+            <div class="document">electronics</div>
+
+            <!-- Gateway Subcollection -->
+            <div class="subcollection">gateway</div>
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    gateway001
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Gateway 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Gateway 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/gateway001.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">powerSupply:</span>
+                                <span class="attribute-value">"12V"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">current:</span>
+                                <span class="attribute-value">"1A"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">voltage:</span>
+                                <span class="attribute-value">"12V"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">frequency:</span>
+                                <span class="attribute-value">"50Hz"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">powerConsumption:</span>
+                                <span class="attribute-value">"10W"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sensor Subcollection -->
+            <div class="subcollection">sensor</div>
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    sensor001
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Sensor 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Sensor 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/sensor001.jpg</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">attributes:</span>
+                        <div class="attributes">
+                            <div class="attribute-item">
+                                <span class="attribute-key">operatingTemperature:</span>
+                                <span class="attribute-value">"0-50°C"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">operatingHumidity:</span>
+                                <span class="attribute-value">"0-95%"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">operatingPressure:</span>
+                                <span class="attribute-value">"0-1000hPa"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">operatingVoltage:</span>
+                                <span class="attribute-value">"12V"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">operatingFrequency:</span>
+                                <span class="attribute-value">"50Hz"</span>
+                            </div>
+                            <div class="attribute-item">
+                                <span class="attribute-key">operatingPower:</span>
+                                <span class="attribute-value">"10W"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Node Subcollection -->
+            <div class="subcollection">node</div>
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    node001
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Node 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Node 001</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/node001.jpg</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="docitem">
+                <div class="docitem-title">
+                    <button class="toggle-btn"></button>
+                    node002
+                </div>
+                <div class="docitem-content">
+                    <div class="docitem-field">
+                        <span class="field-name">name:</span>
+                        <span class="field-value">Node 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">description:</span>
+                        <span class="field-value">Node 002</span>
+                    </div>
+                    <div class="docitem-field">
+                        <span class="field-name">image:</span>
+                        <span class="field-value">https://example.com/node002.jpg</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add toggle functionality to docitems
+        document.querySelectorAll('.docitem-title button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const docitem = button.closest('.docitem');
+                docitem.classList.toggle('collapsed');
+            });
+        });
+
+        // Optional: Collapse all items by default
+        document.querySelectorAll('.docitem').forEach(item => {
+            item.classList.add('collapsed');
+        });
+    </script>
+</body>
+</html>
