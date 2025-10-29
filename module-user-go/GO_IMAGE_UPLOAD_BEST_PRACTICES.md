@@ -164,6 +164,10 @@ func InitializeStorage(config *Config) (StorageProvider, error) {
     }
 }
 
+// Note: In Go, returning *Base64Storage and *SupabaseStorage works because
+// concrete types automatically implement their interfaces (StorageProvider).
+// The `, nil` is included for consistency with error-returning constructors.
+
 // Multi-provider setup (e.g., primary + backup)
 type MultiStorage struct {
     primary StorageProvider
