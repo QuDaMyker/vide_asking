@@ -135,8 +135,9 @@ extension APIClient {
                     }
                 },
                 to: fullURL,
-                method: .post,
-                headers: headers.flatMap { makeHeaders($0) }
+                method: .post
+                // ✅ Don't set headers here - let the interceptor handle it
+                // The interceptor will add Authorization header automatically
             )
             .validate(statusCode: 200..<600)
             .responseDecodable(
@@ -198,8 +199,9 @@ extension APIClient {
                     }
                 },
                 to: fullURL,
-                method: .post,
-                headers: headers.flatMap { makeHeaders($0) }
+                method: .post
+                // ✅ Don't set headers here - let the interceptor handle it
+                // The interceptor will add Authorization header automatically
             )
             .validate(statusCode: 200..<600)
             .response { response in

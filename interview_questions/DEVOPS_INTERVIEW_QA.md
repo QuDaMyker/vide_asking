@@ -81,3 +81,100 @@ metrics:
 ```
 
 A Kubernetes HorizontalPodAutoscaler monitors CPU and scales pods within defined bounds.
+
+## 5. Secrets Management (Junior)
+
+**Question:** How should teams manage application secrets?
+
+**Answer:** Store secrets in dedicated vaults (AWS Secrets Manager, HashiCorp Vault, Kubernetes Secrets with envelope encryption), enforce least privilege access, audit retrieval, and rotate credentials regularly instead of baking them into images or code.
+
+**Example:**
+
+```text
+Deployments mount an external secrets volume populated by Vault Agent. The agent refreshes database credentials automatically, and pods read them from tmpfs rather than environment variables checked into Git.
+```
+
+This limits blast radius if a container is compromised.
+
+## 6. Container Image Best Practices (Junior)
+
+**Question:** What are best practices for building container images?
+
+**Answer:** Use minimal base images, run as non-root, copy only required artifacts, pin versions, and leverage multi-stage builds to shrink size. Regularly scan images for vulnerabilities.
+
+**Example:**
+
+```dockerfile
+FROM golang:1.23 AS build
+WORKDIR /src
+COPY . .
+RUN go build -o app ./cmd/server
+
+FROM gcr.io/distroless/base-debian12
+COPY --from=build /src/app /app
+USER nonroot
+ENTRYPOINT ["/app"]
+```
+
+The resulting image excludes compilers and runs with the least privilege needed.
+
+## 7. Observability Stack (Middle)
+
+**Question:** How do you assemble an observability stack for production?
+
+**Answer:** Combine metrics collection (Prometheus), logging (ELK, Loki), tracing (Jaeger, Tempo), and alerting (Alertmanager, PagerDuty). Automate dashboards and define SLOs that link telemetry to customer impact.
+
+**Example:**
+
+```text
+Terraform provisions Prometheus and Grafana, Fluent Bit forwards structured logs to Loki, and OpenTelemetry collectors export traces to Jaeger. Alertmanager routes SLO breaches to Slack and on-call rotations.
+```
+
+Unified tooling accelerates triage during incidents.
+
+## 8. Disaster Recovery Planning (Middle)
+
+**Question:** What does a robust disaster recovery plan include?
+
+**Answer:** Define Recovery Time Objective (RTO) and Recovery Point Objective (RPO), automate backups with verification, rehearse failover playbooks, and maintain infrastructure templates to recreate environments quickly in secondary regions.
+
+**Example:**
+
+```text
+Nightly backups stream to an offsite bucket with integrity checks. Quarterly game days restore the database to a warm standby region and promote it within 15 minutes, meeting the 30-minute RTO target.
+```
+
+Regular drills validate recovery assumptions before real outages.
+
+## 9. Security Scanning in CI (Middle)
+
+**Question:** How do you integrate security scanning into pipelines?
+
+**Answer:** Add stages for dependency scanning (OWASP Dependency-Check, Snyk), image scanning (Trivy), and static analysis (Semgrep). Fail builds on critical findings and track remediation SLAs.
+
+**Example:**
+
+```yaml
+jobs:
+  security:
+    uses: company/security-action@v2
+    with:
+      scan-images: true
+      scan-dependencies: true
+```
+
+Pipelines surface vulnerabilities before deployment, reducing risk exposure.
+
+## 10. Canary Releases (Middle)
+
+**Question:** How do canary releases differ from blue-green?
+
+**Answer:** Canaries shift a small percentage of traffic to the new version, monitor key metrics, and gradually increase exposure. Unlike blue-green's full cutover, canaries provide finer control and early rollback when anomalies appear.
+
+**Example:**
+
+```text
+Service mesh routing sends 5% of requests to v2 while monitoring error rate and latency. If metrics stay within SLO for 30 minutes, traffic ramps to 50%, then 100%; otherwise, traffic reverts to v1 automatically.
+```
+
+This staged rollout limits blast radius from regressions.

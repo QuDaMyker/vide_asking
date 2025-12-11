@@ -84,3 +84,123 @@ public Customizer<Resilience4JCircuitBreakerFactory> circuitBreakerCustomizer() 
 ```
 
 The circuit breaker enforces timeouts and failure thresholds for outbound calls, protecting the service under load.
+
+## 5. Configuration Profiles (Junior)
+
+**Question:** How do Spring profiles help manage configuration?
+
+**Answer:** Profiles like `dev` or `prod` let you activate different bean sets and property files per environment. Spring loads `application-{profile}.yaml` when the profile is active, keeping secrets and infrastructure endpoints isolated.
+
+**Example:**
+
+```yaml
+spring:
+  profiles: dev
+datasource:
+  url: jdbc:postgresql://localhost/devdb
+```
+
+Running with `--spring.profiles.active=dev` picks up the development datasource settings.
+
+## 6. Bean Validation (Junior)
+
+**Question:** How do you validate request payloads?
+
+**Answer:** Annotate DTO fields with Jakarta Bean Validation constraints (`@NotBlank`, `@Email`), add `@Valid` to controller method parameters, and Spring automatically returns 400 responses when validation fails.
+
+**Example:**
+
+```java
+public record CreateUserRequest(@NotBlank String name, @Email String email) {}
+
+@PostMapping("/users")
+public ResponseEntity<UserDto> create(@Valid @RequestBody CreateUserRequest req) {
+    return ResponseEntity.ok(service.create(req));
+}
+```
+
+The framework rejects invalid input before hitting business logic.
+
+## 7. Transaction Management (Middle)
+
+**Question:** How do you ensure transactional integrity in Spring Boot?
+
+**Answer:** Annotate service methods with `@Transactional` so Spring creates proxies that start, commit, or roll back transactions automatically. You can configure isolation or propagation to control concurrency behavior.
+
+**Example:**
+
+```java
+@Service
+public class PaymentService {
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    public void transfer(long from, long to, BigDecimal amount) {
+        accountRepo.debit(from, amount);
+        accountRepo.credit(to, amount);
+    }
+}
+```
+
+Both debit and credit operations succeed or fail together even under concurrent access.
+
+## 8. Centralized Exception Handling (Middle)
+
+**Question:** How do you expose consistent error responses?
+
+**Answer:** Use `@ControllerAdvice` with `@ExceptionHandler` methods to map exceptions to HTTP responses. This centralizes logging, status codes, and error payloads outside controllers.
+
+**Example:**
+
+```java
+@ControllerAdvice
+public class ApiErrorHandler {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(new ApiError("NOT_FOUND", ex.getMessage()));
+    }
+}
+```
+
+All `NotFoundException` occurrences now return a standardized 404 body.
+
+## 9. Caching Responses (Middle)
+
+**Question:** How do you cache expensive method results?
+
+**Answer:** Enable caching with `@EnableCaching`, annotate methods with `@Cacheable`, and configure a cache manager (e.g., Redis, Caffeine). Spring stores results keyed by method arguments and returns cached values on subsequent calls.
+
+**Example:**
+
+```java
+@Cacheable(value = "pricing", key = "#productId")
+public PriceDto getPrice(String productId) {
+    return pricingClient.fetch(productId);
+}
+```
+
+Repeated price lookups hit the cache instead of the remote service, reducing latency.
+
+## 10. Testing Controllers (Middle)
+
+**Question:** How do you test REST controllers effectively?
+
+**Answer:** Use `@WebMvcTest` with `MockMvc` to slice-test controllers without starting the full server. Mock dependencies and perform HTTP-like requests to assert status codes and payloads.
+
+**Example:**
+
+```java
+@WebMvcTest(GreetingController.class)
+class GreetingControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    void helloReturns200() throws Exception {
+        mockMvc.perform(get("/hello"))
+            .andExpect(status().isOk())
+            .andExpect(content().string("hi"));
+    }
+}
+```
+
+The test verifies controller behavior quickly without deploying a full application context.

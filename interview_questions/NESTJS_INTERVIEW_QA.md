@@ -109,3 +109,154 @@ export class OrdersController {
 ```
 
 The guard ensures only requests with valid bearer tokens reach the controller.
+
+## 5. Middleware Usage (Junior)
+
+**Question:** How do you add middleware in NestJS?
+
+**Answer:** Implement a class with an `use` method, register it in a module's `configure` function via `MiddlewareConsumer`, and optionally scope it to specific routes. Middleware run before guards and controllers.
+
+**Example:**
+
+```typescript
+export class LoggerMiddleware implements NestMiddleware {
+  use(req: Request, res: Response, next: NextFunction) {
+    console.log(`[${req.method}] ${req.url}`);
+    next();
+  }
+}
+
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}
+```
+
+Every inbound request logs method and path before reaching guards or controllers.
+
+## 6. Validation Pipes (Junior)
+
+**Question:** How do pipes support request validation?
+
+**Answer:** Attach `ValidationPipe` globally or per-route to transform and validate DTOs using class-validator decorators. Invalid payloads trigger 400 responses with descriptive errors.
+
+**Example:**
+
+```typescript
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  await app.listen(3000);
+}
+```
+
+Routes now automatically validate DTOs and strip unexpected fields.
+
+## 7. Interceptors for Cross-Cutting Concerns (Middle)
+
+**Question:** What role do interceptors play?
+
+**Answer:** Interceptors wrap request/response flows, enabling logging, caching, or response shaping. They can measure execution time, mutate results, or short-circuit responses before reaching the controller.
+
+**Example:**
+
+```typescript
+@Injectable()
+export class TimingInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler) {
+    const started = Date.now();
+    return next.handle().pipe(tap(() => console.log('took', Date.now() - started)));
+  }
+}
+
+@UseInterceptors(TimingInterceptor)
+@Get('reports')
+listReports() {
+  return this.reportsService.list();
+}
+```
+
+The interceptor logs how long the handler took, aiding performance analysis under load.
+
+## 8. Custom Providers and Tokens (Middle)
+
+**Question:** How do you provide configuration objects or third-party clients?
+
+**Answer:** Define custom providers with unique tokens (symbols or strings) via the module's `providers` array, then inject them using `@Inject`. This pattern supplies clients like Redis or environment-specific configuration data.
+
+**Example:**
+
+```typescript
+export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
+
+@Module({
+  providers: [
+    {
+      provide: REDIS_CLIENT,
+      useFactory: async () => createClient({ url: process.env.REDIS_URL }),
+    },
+  ],
+  exports: [REDIS_CLIENT],
+})
+export class RedisModule {}
+
+@Injectable()
+export class CacheService {
+  constructor(@Inject(REDIS_CLIENT) private readonly redis: RedisClientType) {}
+}
+```
+
+Services depend on the token rather than constructing clients directly, easing testing.
+
+## 9. Event-Driven Microservices (Middle)
+
+**Question:** How does NestJS support event-driven communication?
+
+**Answer:** Nest offers microservice transport layers (Redis, NATS, Kafka). You decorate handlers with `@EventPattern` or `@MessagePattern` to consume messages asynchronously, enabling resilient, decoupled services.
+
+**Example:**
+
+```typescript
+@Module({
+  imports: [ClientsModule.register([{ name: 'BILLING', transport: Transport.REDIS }])],
+})
+export class BillingModule {}
+
+@Controller()
+export class BillingListener {
+  @EventPattern('invoice.paid')
+  handleInvoicePaid(@Payload() event: InvoicePaidEvent) {
+    // update ledger
+  }
+}
+```
+
+The listener processes invoices asynchronously, smoothing spikes in payment events.
+
+## 10. Testing with TestingModule (Middle)
+
+**Question:** How do you unit test NestJS providers?
+
+**Answer:** Use `Test.createTestingModule` to instantiate modules in isolation, override dependencies with mocks, and retrieve providers for testing. This avoids spinning up HTTP servers while exercising business logic.
+
+**Example:**
+
+```typescript
+describe('AuthService', () => {
+  let service: AuthService;
+
+  beforeAll(async () => {
+    const module = await Test.createTestingModule({
+      providers: [AuthService, { provide: UsersService, useValue: mockUsersService }],
+    }).compile();
+    service = module.get(AuthService);
+  });
+
+  it('validates credentials', async () => {
+    await expect(service.validateUser('a@b.com', 'secret')).resolves.toBeDefined();
+  });
+});
+```
+
+The unit test runs business logic rapidly without network or database dependencies.
