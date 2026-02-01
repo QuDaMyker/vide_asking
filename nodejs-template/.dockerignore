@@ -1,0 +1,39 @@
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build
+dist
+build
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Database
+*.db
+*.sqlite
+
+# Testing
+coverage
+.nyc_output
+
+# TypeScript
+*.tsbuildinfo
