@@ -1,0 +1,26 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.container = void 0;
+const inversify_1 = require("inversify");
+const types_1 = require("./types");
+const access_service_1 = require("../services/access.service");
+const keyToken_service_1 = require("../services/keyToken.service");
+const shop_service_1 = require("../services/shop.service");
+const apiKey_service_1 = require("../services/apiKey.service");
+const product_service_1 = require("../services/product.service");
+const product_repo_1 = require("../models/repositories/product.repo");
+const access_controller_1 = require("../controllers/access.controller");
+const product_controller_1 = require("../controllers/product.controller");
+const config_mongodb_1 = require("../config/config.mongodb");
+const container = new inversify_1.Container();
+exports.container = container;
+container.bind(types_1.TYPES.Config).to(config_mongodb_1.Config).inSingletonScope();
+container.bind(types_1.TYPES.AccessService).to(access_service_1.AccessService).inSingletonScope();
+container.bind(types_1.TYPES.KeyTokenService).to(keyToken_service_1.KeyTokenService).inSingletonScope();
+container.bind(types_1.TYPES.ShopService).to(shop_service_1.ShopService).inSingletonScope();
+container.bind(types_1.TYPES.ApiKeyService).to(apiKey_service_1.ApiKeyService).inSingletonScope();
+container.bind(types_1.TYPES.ProductService).to(product_service_1.ProductService).inSingletonScope();
+container.bind(types_1.TYPES.ProductRepository).to(product_repo_1.ProductRepository).inSingletonScope();
+container.bind(types_1.TYPES.AccessController).to(access_controller_1.AccessController).inSingletonScope();
+container.bind(types_1.TYPES.ProductController).to(product_controller_1.ProductController).inSingletonScope();
+//# sourceMappingURL=container.js.map

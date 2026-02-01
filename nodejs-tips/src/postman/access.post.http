@@ -1,0 +1,45 @@
+@url_dev=http://localhost:3052/v1/api
+
+### signup
+POST {{url_dev}}/auth/signup
+Content-Type: application/json
+x-api-key: bcf59abc65a75bed4ccaae0eb44f232e21872b07a357a65747d272f8ca8a4fa9c3925bc4fec3bdc97831acf691cd19be46ef3329ec7e0a3c000ab4172be8560b
+
+{
+    "name": "Shop {{$timestamp}}",
+    "email": "{{$timestamp}}@gmail.com",
+    "password": "123"
+}
+
+
+### login
+POST {{url_dev}}/auth/login
+Content-Type: application/json
+x-api-key: bcf59abc65a75bed4ccaae0eb44f232e21872b07a357a65747d272f8ca8a4fa9c3925bc4fec3bdc97831acf691cd19be46ef3329ec7e0a3c000ab4172be8560b
+
+{
+    "email": "1769914264@gmail.com",
+    "password": "123"
+}
+
+### handlerRefreshToken
+POST {{url_dev}}/auth/handlerRefreshToken
+Content-Type: application/json
+x-api-key: bcf59abc65a75bed4ccaae0eb44f232e21872b07a357a65747d272f8ca8a4fa9c3925bc4fec3bdc97831acf691cd19be46ef3329ec7e0a3c000ab4172be8560b
+x-client-id: 697ec98da5cdb25b4210f733
+Authorization: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTdlYzk4ZGE1Y2RiMjViNDIxMGY3MzMiLCJlbWFpbCI6IjE3Njk5MTY4MTNAZ21haWwuY29tIiwiaWF0IjoxNzY5OTE2ODEzLCJleHAiOjE3NzAwODk2MTN9.CT5oOu5YkBDVVfBGhGoB2Oh9QZ04g95177xGgarbF8_KPpri8vZ6BXe1GuE_Xg1-QOoPVddg2p1lnajPe78DVg
+refreshtoken: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTdlYzk4ZGE1Y2RiMjViNDIxMGY3MzMiLCJlbWFpbCI6IjE3Njk5MTY4MTNAZ21haWwuY29tIiwiaWF0IjoxNzY5OTE2ODEzLCJleHAiOjE3NzA1MjE2MTN9.TSlWywKsE_n9uNuzvuTxIktFZFkrk5Ur1PMw3GuJpQc1thF1YJYcm_dfuiEA5VMbqyZ5bxXnnNN-7LJsBZX3Rw
+
+
+### logout
+POST {{url_dev}}/auth/logout
+Content-Type: application/json
+x-api-key: bcf59abc65a75bed4ccaae0eb44f232e21872b07a357a65747d272f8ca8a4fa9c3925bc4fec3bdc97831acf691cd19be46ef3329ec7e0a3c000ab4172be8560b
+x-client-id: 697dcabd8f59ae78f975a613
+Authorization: eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTdkY2FiZDhmNTlhZTc4Zjk3NWE2MTMiLCJlbWFpbCI6IjE3Njk4NTE1ODFAZ21haWwuY29tIiwiaWF0IjoxNzY5ODU0Njc5LCJleHAiOjE3NzAwMjc0Nzl9.FHOOX2U183Ag949xm90n2oM_w93oORAmpH_1tqFBUJ8DMeotx4_FoCb_IUEP_pRneCt_zCGWy6pe62NMQkqhng
+
+{
+    "keyStore": "1769851581@gmail.com",
+    "password": "123"
+}
+
