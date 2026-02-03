@@ -1,0 +1,15 @@
+# Docker ignore for build context
+node_modules
+npm-debug.log
+dist
+.git
+.gitignore
+README.md
+.env
+.env.*
+tests
+coverage
+*.test.ts
+*.spec.ts
+.vscode
+.idea
