@@ -1,13 +1,35 @@
-# Build stage
-FROM node:18-alpine AS builder
+# Development stage
+FROM node:18-alpine AS development
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Copy source code
+COPY . .
+
+EXPOSE 3000
+
+# Start with nodemon for hot reload
+CMD ["npm", "run", "dev"]
+
+# Build stage
+FROM node:18-alpine AS builder
+
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies for building
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -16,7 +38,10 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine
+FROM node:18-alpine AS production
+
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 
 WORKDIR /app
 

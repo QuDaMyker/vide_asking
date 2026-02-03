@@ -5,8 +5,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: production
+      args:
+        - NODE_ENV=production
     ports:
       - "${PORT:-3000}:3000"
+    env_file:
+      - .env.production
     environment:
       - NODE_ENV=production
       - PORT=3000

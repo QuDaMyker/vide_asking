@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        - NODE_ENV=staging
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env.staging
+    environment:
+      - NODE_ENV=staging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=${DB_NAME:-nodejs_template_staging}
+      - POSTGRES_USER=${DB_USER:-staging_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-staging_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-staging-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-staging_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-staging-data:
+
+networks:
+  app-network:
+    driver: bridge

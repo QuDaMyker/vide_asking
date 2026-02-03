@@ -5,11 +5,14 @@ dist
 .git
 .gitignore
 README.md
+*.md
 .env
 .env.*
+!.env.*.example
 tests
 coverage
 *.test.ts
 *.spec.ts
 .vscode
 .idea
+.DS_Store
