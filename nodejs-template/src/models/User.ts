@@ -35,7 +35,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
 
   // Method to get user without password
   public toJSON(): object {
-    const values = { ...this.get() };
+    const values = { ...this.get() } as any;
     delete values.password;
     return values;
   }

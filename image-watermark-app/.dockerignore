@@ -1,0 +1,41 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Environment files
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Logs
+*.log
+server.log
+
+# Uploaded images (will be mounted as volume)
+# image_uploaded/*
+
+# Documentation (optional - uncomment to exclude)
+# README.md
+# *.md
+
+# Test files
+test/
+tests/
+*.test.js

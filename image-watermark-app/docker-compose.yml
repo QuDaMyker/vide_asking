@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  watermark-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: image-watermark-app
+    ports:
+      - "3001:3000"
+    volumes:
+      # Persist uploaded images
+      - ./image_uploaded:/app/image_uploaded
+      # Optional: mount for development (uncomment for hot reload)
+      # - ./app.js:/app/app.js
+      # - ./index.html:/app/index.html
+      # - ./styles.css:/app/styles.css
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - watermark-network
+
+networks:
+  watermark-network:
+    driver: bridge
+

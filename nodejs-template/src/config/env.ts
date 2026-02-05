@@ -51,7 +51,7 @@ export const config: Config = {
     port: parseInt(process.env.DB_PORT || '5432', 10),
     name: process.env.DB_NAME || 'nodejs_template_dev',
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || ''
+    password: process.env.DB_PASSWORD || 'postgres'
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'dev_jwt_secret',

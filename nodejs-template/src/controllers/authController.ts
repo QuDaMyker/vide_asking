@@ -9,12 +9,12 @@ export class AuthController {
     try {
       const result = await authService.register(req.body);
       
-      res.status(201).json({
+      return res.status(201).json({
         status: 'success',
         data: result
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -22,12 +22,12 @@ export class AuthController {
     try {
       const result = await authService.login(req.body);
       
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: result
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -44,12 +44,12 @@ export class AuthController {
 
       const result = await authService.refreshToken(refreshToken);
       
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: result
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 
@@ -57,12 +57,12 @@ export class AuthController {
     try {
       const result = await authService.getProfile(req.userId!);
       
-      res.status(200).json({
+      return res.status(200).json({
         status: 'success',
         data: result
       });
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 }

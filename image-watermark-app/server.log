@@ -1,0 +1,12 @@
+
+> image-watermark-app@1.0.0 start
+> node server.js
+
+Created image_uploaded folder
+
+╔════════════════════════════════════════════════════════╗
+║  Image Watermark Server                               ║
+║  Running on: http://localhost:3000                    ║
+║  Upload folder: /Users/danhpq/Github/vide_asking/image-watermark-app/image_uploaded                           ║
+╚════════════════════════════════════════════════════════╝
+    

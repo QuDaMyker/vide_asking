@@ -20,7 +20,7 @@
                     <div class="upload-icon">📁</div>
                     <h3>Drop your image here</h3>
                     <p>or click to browse</p>
-                    <p class="file-types">Supports: JPG, JPEG, PNG, TIFF, HEIC</p>
+                    <p class="file-types">Supports: JPG, JPEG, PNG, TIFF, HEIC, RAW</p>
                     <input type="file" id="fileInput" accept="image/*,.heic,.heif,.raw,.cr2,.nef,.arw,.dng" hidden>
                 </div>
             </section>
@@ -30,11 +30,17 @@
                 <div class="preview-container">
                     <div class="image-preview">
                         <h3>Original Image</h3>
-                        <img id="originalImage" alt="Original">
+                        <div class="glass-image-container">
+                            <img id="originalImageBlur" class="image-blur" alt="Original Blur">
+                            <img id="originalImage" class="image-clear" alt="Original">
+                        </div>
                     </div>
                     <div class="image-preview">
                         <h3>Watermarked Image</h3>
-                        <canvas id="watermarkCanvas"></canvas>
+                        <div class="glass-image-container">
+                            <canvas id="watermarkCanvasBlur" class="watermark-blur"></canvas>
+                            <canvas id="watermarkCanvas" class="watermark-clear"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -52,27 +58,13 @@
                 <h3>⚙️ Watermark Settings</h3>
                 <div class="settings-grid">
                     <div class="setting-group">
-                        <label for="watermarkPosition">Position</label>
-                        <select id="watermarkPosition">
-                            <option value="bottom-right">Bottom Right</option>
-                            <option value="bottom-left">Bottom Left</option>
-                            <option value="top-right">Top Right</option>
-                            <option value="top-left">Top Left</option>
-                            <option value="center">Center</option>
-                        </select>
-                    </div>
-                    <div class="setting-group">
-                        <label for="watermarkStyle">Style</label>
-                        <select id="watermarkStyle">
-                            <option value="minimal">Minimal</option>
-                            <option value="detailed">Detailed</option>
-                            <option value="badge">Badge</option>
-                        </select>
+                        <label for="authorName">Author/Photographer Name (Optional)</label>
+                        <input type="text" id="authorName" placeholder="e.g., John Doe" maxlength="50">
                     </div>
                     <div class="setting-group">
                         <label for="fontSize">Font Size</label>
-                        <input type="range" id="fontSize" min="12" max="48" value="24">
-                        <span id="fontSizeValue">24px</span>
+                        <input type="range" id="fontSize" min="12" max="80" value="48">
+                        <span id="fontSizeValue">48px</span>
                     </div>
                     <div class="setting-group">
                         <label for="opacity">Opacity</label>
@@ -85,23 +77,23 @@
                     </div>
                     <div class="setting-group">
                         <label for="bgColor">Background Color</label>
-                        <input type="color" id="bgColor" value="#000000">
+                        <input type="color" id="bgColor" value="#1a1a1a">
                     </div>
                     <div class="setting-group checkbox-group">
                         <input type="checkbox" id="showDate" checked>
-                        <label for="showDate">Show Date</label>
+                        <label for="showDate">Show Date (Left)</label>
+                    </div>
+                    <div class="setting-group checkbox-group">
+                        <input type="checkbox" id="showAuthor" checked>
+                        <label for="showAuthor">Show Author (Center)</label>
                     </div>
                     <div class="setting-group checkbox-group">
                         <input type="checkbox" id="showCamera" checked>
-                        <label for="showCamera">Show Camera</label>
-                    </div>
-                    <div class="setting-group checkbox-group">
-                        <input type="checkbox" id="showLens" checked>
-                        <label for="showLens">Show Lens</label>
+                        <label for="showCamera">Show Camera (Right)</label>
                     </div>
                     <div class="setting-group checkbox-group">
                         <input type="checkbox" id="showSettings" checked>
-                        <label for="showSettings">Show Settings (f, ISO, SS)</label>
+                        <label for="showSettings">Show Settings (Focal, Aperture, SS)</label>
                     </div>
                 </div>
                 <div class="button-group">
@@ -121,6 +113,7 @@
     <div class="loading-overlay" id="loadingOverlay" style="display: none;">
         <div class="spinner"></div>
         <p>Processing image...</p>
+        <button id="cancelUpload" class="btn btn-cancel">Cancel Upload</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/exif-js@2.3.0/exif.min.js"></script>
